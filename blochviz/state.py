@@ -80,16 +80,32 @@ def _insert_bit(k: int, pos: int, bit: int, n_qubits: int) -> int:
 
 
 def zero() -> QuantumState:
+<<<<<<< Updated upstream
+=======
+    """Return the |0> computational basis state."""
+>>>>>>> Stashed changes
     return QuantumState([1, 0])
 
 
 def one() -> QuantumState:
+<<<<<<< Updated upstream
+=======
+    """Return the |1> computational basis state."""
+>>>>>>> Stashed changes
     return QuantumState([0, 1])
 
 
 def plus() -> QuantumState:
+<<<<<<< Updated upstream
+=======
+    """Return the |+> = (|0>+|1>)/sqrt(2) state."""
+>>>>>>> Stashed changes
     return QuantumState([1, 1])
 
 
 def minus() -> QuantumState:
+<<<<<<< Updated upstream
+=======
+    """Return the |-> = (|0>-|1>)/sqrt(2) state."""
+>>>>>>> Stashed changes
     return QuantumState([1, -1])

@@ -53,8 +53,12 @@ class BlochSphere:
                 alpha=0.6,
             )
 
-        ax.text(0, 0, 1.25, "|0⟩", color="white", ha="center", fontsize=9)
-        ax.text(0, 0, -1.35, "|1⟩", color="white", ha="center", fontsize=9)
+        ax.text(
+            0, 0, 1.25, r"$|0\rangle$", color="white", ha="center", fontsize=9
+        )
+        ax.text(
+            0, 0, -1.35, r"$|1\rangle$", color="white", ha="center", fontsize=9
+        )
         ax.text(1.35, 0, 0, "x", color="#ff6666", ha="center", fontsize=8)
         ax.text(0, 1.35, 0, "y", color="#66ff66", ha="center", fontsize=8)
 

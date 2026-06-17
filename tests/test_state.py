@@ -34,9 +34,13 @@ def test_from_bloch_angles_plus():
 
 
 def test_from_bloch_angles_poles():
-    assert np.allclose(QuantumState.from_bloch_angles(0, 0).bloch_vector(), [0, 0, 1])
     assert np.allclose(
-        QuantumState.from_bloch_angles(np.pi, 0).bloch_vector(), [0, 0, -1], atol=1e-6
+        QuantumState.from_bloch_angles(0, 0).bloch_vector(), [0, 0, 1]
+    )
+    assert np.allclose(
+        QuantumState.from_bloch_angles(np.pi, 0).bloch_vector(),
+        [0, 0, -1],
+        atol=1e-6,
     )
 
 
@@ -60,7 +64,7 @@ def test_density_matrix_apply():
 
 def test_bell_state_entanglement():
     s = QuantumState([1, 0, 0, 0]).apply(H, 0).apply(CNOT)
-    # Both reduced states must be maximally mixed → zero Bloch vector
+    # Both reduced states must be maximally mixed -> zero Bloch vector
     assert np.allclose(s.bloch_vector(0), [0, 0, 0], atol=1e-6)
     assert np.allclose(s.bloch_vector(1), [0, 0, 0], atol=1e-6)
 
