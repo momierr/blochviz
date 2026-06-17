@@ -16,7 +16,16 @@ jobs:
           python-version: "3.12"
 
       - name: Install
-        run: pip install -e ".[dev]" numpy matplotlib pytest
+        run: pip install -e ".[dev]" numpy matplotlib
 
-      - name: Test
+      - name: Ruff lint
+        run: ruff check blochviz/
+
+      - name: Ruff format check
+        run: ruff format --check blochviz/
+
+      - name: Mypy
+        run: mypy blochviz/
+
+      - name: Tests
         run: pytest -v

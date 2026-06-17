@@ -1,12 +1,23 @@
+from __future__ import annotations
+
+from typing import Any
+
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 from matplotlib.animation import FuncAnimation
+from matplotlib.figure import Figure
 
+from .gates import Gate
 from .sphere import BlochSphere
 from .state import QuantumState
 
+GateSpec = Gate | tuple[Gate, int]
 
-def _slerp(v0, v1, t):
+
+def _slerp(
+    v0: npt.NDArray[np.float64], v1: npt.NDArray[np.float64], t: float
+) -> npt.NDArray[np.float64]:
     """Spherical linear interpolation between two vectors."""
     v0 = np.array(v0, dtype=float)
     v1 = np.array(v1, dtype=float)
@@ -15,31 +26,31 @@ def _slerp(v0, v1, t):
     )
     omega = np.arccos(dot)
     if omega < 1e-10:
-        return v0 + t * (v1 - v0)
-    return (np.sin((1 - t) * omega) * v0 + np.sin(t * omega) * v1) / np.sin(omega)
+        return np.asarray(v0 + t * (v1 - v0), dtype=np.float64)
+    return np.asarray(
+        (np.sin((1 - t) * omega) * v0 + np.sin(t * omega) * v1) / np.sin(omega),
+        dtype=np.float64,
+    )
 
 
 def animate_circuit(
-    initial_state,
-    gates,
-    labels=None,
-    n_frames=30,
-    interval=50,
-    trail=True,
-    figsize=None,
-):
+    initial_state: QuantumState | npt.ArrayLike,
+    gates: list[GateSpec],
+    labels: list[str] | None = None,
+    n_frames: int = 30,
+    interval: int = 50,
+    trail: bool = True,
+    figsize: tuple[float, float] | None = None,
+) -> FuncAnimation:
     """
     Animate a sequence of quantum gates on the Bloch sphere.
 
     Parameters
     ----------
-    initial_state : array-like
+    initial_state : QuantumState or array-like
         Statevector, e.g. [1, 0] for |0⟩ or [1, 0, 0, 0] for |00⟩.
-    gates : list
-        Each element is either:
-        - a 2D numpy array (gate matrix), applied to qubit 0 for 1-qubit circuits,
-          or a full 2^n x 2^n matrix for n-qubit circuits
-        - a tuple (gate_matrix, target_qubit)
+    gates : list of Gate or (Gate, target_qubit)
+        Each element is a gate matrix or a (gate, target_qubit) tuple.
     labels : list of str, optional
         Gate label for each step, shown in figure title.
     n_frames : int
@@ -51,7 +62,7 @@ def animate_circuit(
 
     Returns
     -------
-    matplotlib.animation.FuncAnimation
+    FuncAnimation
     """
     if not isinstance(initial_state, QuantumState):
         initial_state = QuantumState(initial_state)
@@ -60,9 +71,7 @@ def animate_circuit(
     if labels is None:
         labels = [f"Gate {i + 1}" for i in range(len(gates))]
 
-    # Build sequence of states: initial + one per gate
     states = [state]
-    parsed_gates = []
     for g in gates:
         if isinstance(g, tuple):
             gate_mat, target = g
@@ -70,17 +79,13 @@ def animate_circuit(
             gate_mat, target = g, 0
         state = state.apply(gate_mat, target)
         states.append(state)
-        parsed_gates.append((gate_mat, target))
 
-    # Pre-compute Bloch vectors for every qubit at every state
-    bloch_seqs = []  # bloch_seqs[qubit][step] = (x,y,z)
-    for q in range(n_qubits):
-        bloch_seqs.append([s.bloch_vector(q) for s in states])
+    bloch_seqs: list[list[npt.NDArray[np.float64]]] = [
+        [s.bloch_vector(q) for s in states] for q in range(n_qubits)
+    ]
 
-    # Build frame list: for each gate, n_frames interpolated Bloch vectors per qubit
-    # frames[frame_idx] = list of bloch_vec per qubit
-    frame_bloch = []  # list of [vec_q0, vec_q1, ...]
-    frame_labels = []
+    frame_bloch: list[list[npt.NDArray[np.float64]]] = []
+    frame_labels: list[str] = []
 
     for step_idx, label in enumerate(labels):
         v_start = [bloch_seqs[q][step_idx] for q in range(n_qubits)]
@@ -92,29 +97,25 @@ def animate_circuit(
             )
             frame_labels.append(label)
 
-    # Set up figure
     if figsize is None:
         figsize = (4 * n_qubits, 4.5)
     fig = plt.figure(figsize=figsize, facecolor="black")
 
-    axes = []
-    spheres = []
-    qubit_titles = [f"qubit {q}" for q in range(n_qubits)]
+    spheres: list[BlochSphere] = []
     for q in range(n_qubits):
         ax = fig.add_subplot(1, n_qubits, q + 1, projection="3d")
-        axes.append(ax)
-        spheres.append(BlochSphere(ax, title=qubit_titles[q]))
+        spheres.append(BlochSphere(ax, title=f"qubit {q}"))
 
     title_text = fig.suptitle("", color="white", fontsize=12, y=0.98)
 
-    def init():
+    def init() -> list[Any]:
         for q, sphere in enumerate(spheres):
             sphere.reset_trail()
             sphere.update(bloch_seqs[q][0], trail=False)
         title_text.set_text("Initial state")
         return []
 
-    def update(frame):
+    def update(frame: int) -> list[Any]:
         vecs = frame_bloch[frame]
         label = frame_labels[frame]
         for q, sphere in enumerate(spheres):
@@ -122,7 +123,7 @@ def animate_circuit(
         title_text.set_text(label)
         return []
 
-    anim = FuncAnimation(
+    return FuncAnimation(
         fig,
         update,
         frames=len(frame_bloch),
@@ -130,26 +131,15 @@ def animate_circuit(
         interval=interval,
         blit=False,
     )
-    return anim
 
 
-def plot_state(state, qubit_idx=0, title="", figsize=(4, 4.5)):
-    """Render a single quantum state as a static Bloch sphere.
-
-    Parameters
-    ----------
-    state : QuantumState or array-like
-        State to render.
-    qubit_idx : int
-        Which qubit to visualize (for multi-qubit states).
-    title : str
-        Subplot title.
-    figsize : tuple
-
-    Returns
-    -------
-    matplotlib.figure.Figure
-    """
+def plot_state(
+    state: QuantumState | npt.ArrayLike,
+    qubit_idx: int = 0,
+    title: str = "",
+    figsize: tuple[float, float] = (4, 4.5),
+) -> Figure:
+    """Render a single quantum state as a static Bloch sphere."""
     if not isinstance(state, QuantumState):
         state = QuantumState(state)
     fig = plt.figure(figsize=figsize, facecolor="black")
@@ -159,17 +149,10 @@ def plot_state(state, qubit_idx=0, title="", figsize=(4, 4.5)):
     return fig
 
 
-def save_animation(anim, path, fps=25, dpi=100):
-    """Save an animation returned by animate_circuit().
-
-    Parameters
-    ----------
-    anim : FuncAnimation
-    path : str
-        Output path. Extension determines format: .gif uses Pillow, .mp4 uses ffmpeg.
-    fps : int
-    dpi : int
-    """
+def save_animation(
+    anim: FuncAnimation, path: str, fps: int = 25, dpi: int = 100
+) -> None:
+    """Save an animation to .gif (Pillow) or .mp4 (ffmpeg) based on file extension."""
     ext = path.rsplit(".", 1)[-1].lower()
     writer = "pillow" if ext == "gif" else "ffmpeg"
     anim.save(path, writer=writer, fps=fps, dpi=dpi)

@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import numpy as np
+import numpy.typing as npt
 
-I = np.eye(2, dtype=complex)
-X = np.array([[0, 1], [1, 0]], dtype=complex)
-Y = np.array([[0, -1j], [1j, 0]], dtype=complex)
-Z = np.array([[1, 0], [0, -1]], dtype=complex)
-H = np.array([[1, 1], [1, -1]], dtype=complex) / np.sqrt(2)
-S = np.array([[1, 0], [0, 1j]], dtype=complex)
-T = np.array([[1, 0], [0, np.exp(1j * np.pi / 4)]], dtype=complex)
+Gate = npt.NDArray[np.complex128]
 
-CNOT = np.array(
+I: Gate = np.eye(2, dtype=complex)  # noqa: E741
+X: Gate = np.array([[0, 1], [1, 0]], dtype=complex)
+Y: Gate = np.array([[0, -1j], [1j, 0]], dtype=complex)
+Z: Gate = np.array([[1, 0], [0, -1]], dtype=complex)
+H: Gate = np.array([[1, 1], [1, -1]], dtype=complex) / np.sqrt(2)
+S: Gate = np.array([[1, 0], [0, 1j]], dtype=complex)
+T: Gate = np.array([[1, 0], [0, np.exp(1j * np.pi / 4)]], dtype=complex)
+
+CNOT: Gate = np.array(
     [
         [1, 0, 0, 0],
         [0, 1, 0, 0],
@@ -18,7 +23,7 @@ CNOT = np.array(
     dtype=complex,
 )
 
-CZ = np.array(
+CZ: Gate = np.array(
     [
         [1, 0, 0, 0],
         [0, 1, 0, 0],
@@ -29,26 +34,26 @@ CZ = np.array(
 )
 
 
-def Rx(theta):
+def Rx(theta: float) -> Gate:
     c, s = np.cos(theta / 2), np.sin(theta / 2)
     return np.array([[c, -1j * s], [-1j * s, c]], dtype=complex)
 
 
-def Ry(theta):
+def Ry(theta: float) -> Gate:
     c, s = np.cos(theta / 2), np.sin(theta / 2)
     return np.array([[c, -s], [s, c]], dtype=complex)
 
 
-def Rz(theta):
+def Rz(theta: float) -> Gate:
     return np.array(
         [[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]], dtype=complex
     )
 
 
-def expand_gate(U, n_qubits, target):
+def expand_gate(U: Gate, n_qubits: int, target: int) -> Gate:
     """Embed a 2x2 gate U acting on `target` qubit into a 2^n x 2^n matrix."""
-    ops = [U if i == target else I for i in range(n_qubits)]
-    result = ops[0]
+    ops: list[Gate] = [U if i == target else I for i in range(n_qubits)]
+    result: Gate = ops[0]
     for op in ops[1:]:
-        result = np.kron(result, op)
+        result = np.asarray(np.kron(result, op), dtype=np.complex128)
     return result

@@ -1,37 +1,44 @@
+from __future__ import annotations
+
 import numpy as np
+import numpy.typing as npt
 
-from .gates import expand_gate
+from .gates import Gate, expand_gate
 
-_SX = np.array([[0, 1], [1, 0]], dtype=complex)
-_SY = np.array([[0, -1j], [1j, 0]], dtype=complex)
-_SZ = np.array([[1, 0], [0, -1]], dtype=complex)
+_SX: Gate = np.array([[0, 1], [1, 0]], dtype=complex)
+_SY: Gate = np.array([[0, -1j], [1j, 0]], dtype=complex)
+_SZ: Gate = np.array([[1, 0], [0, -1]], dtype=complex)
 
 
 class QuantumState:
-    def __init__(self, statevector):
+    sv: npt.NDArray[np.complex128] | None
+    n_qubits: int
+    _rho: Gate
+
+    def __init__(self, statevector: npt.ArrayLike) -> None:
         sv = np.array(statevector, dtype=complex)
         self.sv = sv / np.linalg.norm(sv)
         self.n_qubits = int(round(np.log2(len(sv))))
         self._rho = np.outer(self.sv, self.sv.conj())
 
     @classmethod
-    def from_density_matrix(cls, rho):
-        rho = np.array(rho, dtype=complex)
-        rho = rho / np.trace(rho)
+    def from_density_matrix(cls, rho: npt.ArrayLike) -> QuantumState:
+        rho_arr = np.array(rho, dtype=complex)
+        rho_arr = rho_arr / np.trace(rho_arr)
         obj = object.__new__(cls)
         obj.sv = None
-        obj.n_qubits = int(round(np.log2(rho.shape[0])))
-        obj._rho = rho
+        obj.n_qubits = int(round(np.log2(rho_arr.shape[0])))
+        obj._rho = rho_arr
         return obj
 
     @classmethod
-    def from_bloch_angles(cls, theta, phi):
+    def from_bloch_angles(cls, theta: float, phi: float) -> QuantumState:
         """Pure state from Bloch sphere polar angles theta ∈ [0,π], phi ∈ [0,2π)."""
         sv = [np.cos(theta / 2), np.exp(1j * phi) * np.sin(theta / 2)]
         return cls(sv)
 
-    def bloch_vector(self, qubit_idx=0):
-        """(x, y, z) Bloch vector for qubit_idx via partial trace of the density matrix."""
+    def bloch_vector(self, qubit_idx: int = 0) -> npt.NDArray[np.float64]:
+        """(x, y, z) Bloch vector for qubit_idx via partial trace."""
         rho_q = _partial_trace(self._rho, qubit_idx, self.n_qubits)
         return np.array(
             [
@@ -41,7 +48,7 @@ class QuantumState:
             ]
         )
 
-    def apply(self, gate, target_qubit=0):
+    def apply(self, gate: Gate, target_qubit: int = 0) -> QuantumState:
         if gate.shape == (2**self.n_qubits, 2**self.n_qubits):
             U = gate
         else:
@@ -52,7 +59,7 @@ class QuantumState:
         return QuantumState.from_density_matrix(new_rho)
 
 
-def _partial_trace(rho, qubit_idx, n_qubits):
+def _partial_trace(rho: Gate, qubit_idx: int, n_qubits: int) -> Gate:
     """Trace out all qubits except qubit_idx, return 2x2 reduced density matrix."""
     dim = 2**n_qubits
     rho_q = np.zeros((2, 2), dtype=complex)
@@ -65,25 +72,24 @@ def _partial_trace(rho, qubit_idx, n_qubits):
     return rho_q
 
 
-def _insert_bit(k, pos, bit, n_qubits):
+def _insert_bit(k: int, pos: int, bit: int, n_qubits: int) -> int:
     shift = n_qubits - 1 - pos
     high = k >> shift
     low = k & ((1 << shift) - 1)
     return (high << (shift + 1)) | (bit << shift) | low
 
 
-# Convenience constructors
-def zero():
+def zero() -> QuantumState:
     return QuantumState([1, 0])
 
 
-def one():
+def one() -> QuantumState:
     return QuantumState([0, 1])
 
 
-def plus():
+def plus() -> QuantumState:
     return QuantumState([1, 1])
 
 
-def minus():
+def minus() -> QuantumState:
     return QuantumState([1, -1])
