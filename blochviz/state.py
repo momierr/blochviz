@@ -1,3 +1,5 @@
+"""Quantum state representation and Bloch vector computation."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -11,6 +13,8 @@ _SZ: Gate = np.array([[1, 0], [0, -1]], dtype=complex)
 
 
 class QuantumState:
+    """Normalized quantum state with statevector or density matrix storage."""
+
     sv: npt.NDArray[np.complex128] | None
     n_qubits: int
     _rho: Gate
@@ -23,6 +27,7 @@ class QuantumState:
 
     @classmethod
     def from_density_matrix(cls, rho: npt.ArrayLike) -> QuantumState:
+        """Construct a state from a (possibly mixed) density matrix."""
         rho_arr = np.array(rho, dtype=complex)
         rho_arr = rho_arr / np.trace(rho_arr)
         obj = object.__new__(cls)
@@ -33,12 +38,12 @@ class QuantumState:
 
     @classmethod
     def from_bloch_angles(cls, theta: float, phi: float) -> QuantumState:
-        """Pure state from Bloch sphere polar angles theta ∈ [0,π], phi ∈ [0,2π)."""
+        """Construct a pure state from Bloch sphere angles (theta, phi)."""
         sv = [np.cos(theta / 2), np.exp(1j * phi) * np.sin(theta / 2)]
         return cls(sv)
 
     def bloch_vector(self, qubit_idx: int = 0) -> npt.NDArray[np.float64]:
-        """(x, y, z) Bloch vector for qubit_idx via partial trace."""
+        """Return (x, y, z) Bloch vector for qubit_idx via partial trace."""
         rho_q = _partial_trace(self._rho, qubit_idx, self.n_qubits)
         return np.array(
             [
@@ -49,6 +54,7 @@ class QuantumState:
         )
 
     def apply(self, gate: Gate, target_qubit: int = 0) -> QuantumState:
+        """Apply a gate to target_qubit and return a new QuantumState."""
         if gate.shape == (2**self.n_qubits, 2**self.n_qubits):
             U = gate
         else:
@@ -60,7 +66,7 @@ class QuantumState:
 
 
 def _partial_trace(rho: Gate, qubit_idx: int, n_qubits: int) -> Gate:
-    """Trace out all qubits except qubit_idx, return 2x2 reduced density matrix."""
+    """Trace out all qubits except qubit_idx; return 2x2 density matrix."""
     dim = 2**n_qubits
     rho_q = np.zeros((2, 2), dtype=complex)
     for i in range(2):
@@ -80,16 +86,20 @@ def _insert_bit(k: int, pos: int, bit: int, n_qubits: int) -> int:
 
 
 def zero() -> QuantumState:
+    """Return the |0⟩ computational basis state."""
     return QuantumState([1, 0])
 
 
 def one() -> QuantumState:
+    """Return the |1⟩ computational basis state."""
     return QuantumState([0, 1])
 
 
 def plus() -> QuantumState:
+    """Return the |+⟩ = (|0⟩+|1⟩)/√2 state."""
     return QuantumState([1, 1])
 
 
 def minus() -> QuantumState:
+    """Return the |−⟩ = (|0⟩−|1⟩)/√2 state."""
     return QuantumState([1, -1])

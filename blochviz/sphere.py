@@ -1,3 +1,5 @@
+"""3D Bloch sphere renderer using matplotlib."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -9,6 +11,8 @@ from mpl_toolkits.mplot3d.axes3d import Axes3D as Axes3DType
 
 
 class BlochSphere:
+    """Renders a single Bloch sphere on a 3D matplotlib axes."""
+
     ax: Axes3DType
     _arrow: Any | None
     _trail_line: Any | None
@@ -37,7 +41,9 @@ class BlochSphere:
         xs = np.outer(np.cos(u), np.sin(v))
         ys = np.outer(np.sin(u), np.sin(v))
         zs = np.outer(np.ones_like(u), np.cos(v))
-        ax.plot_wireframe(xs, ys, zs, color="#334455", linewidth=0.3, alpha=0.4)
+        ax.plot_wireframe(
+            xs, ys, zs, color="#334455", linewidth=0.3, alpha=0.4
+        )
 
         for vec, color in [
             ([1, 0, 0], "#ff4444"),
@@ -68,7 +74,12 @@ class BlochSphere:
             alpha=0.5,
         )
 
-    def update(self, bloch_vec: npt.NDArray[np.float64], trail: bool = True) -> None:
+    def update(
+        self,
+        bloch_vec: npt.NDArray[np.float64],
+        trail: bool = True,
+    ) -> None:
+        """Redraw the state arrow and optionally append to the trail."""
         x, y, z = bloch_vec
         if self._arrow is not None:
             self._arrow.remove()
@@ -102,6 +113,7 @@ class BlochSphere:
                 )
 
     def reset_trail(self) -> None:
+        """Clear the trajectory trail."""
         self._trail_pts = []
         if self._trail_line is not None:
             self._trail_line.remove()

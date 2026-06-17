@@ -1,3 +1,5 @@
+"""Bloch sphere visualizer for single and multi-qubit quantum states."""
+
 from .animation import animate_circuit, plot_state, save_animation
 from .gates import CNOT, CZ, H, I, Rx, Ry, Rz, S, T, X, Y, Z
 from .state import QuantumState, minus, one, plus, zero
