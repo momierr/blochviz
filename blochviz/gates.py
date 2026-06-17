@@ -1,3 +1,5 @@
+"""Standard single- and two-qubit gate matrices."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -35,23 +37,30 @@ CZ: Gate = np.array(
 
 
 def Rx(theta: float) -> Gate:
+    """Return the single-qubit X-rotation gate for angle theta."""
     c, s = np.cos(theta / 2), np.sin(theta / 2)
     return np.array([[c, -1j * s], [-1j * s, c]], dtype=complex)
 
 
 def Ry(theta: float) -> Gate:
+    """Return the single-qubit Y-rotation gate for angle theta."""
     c, s = np.cos(theta / 2), np.sin(theta / 2)
     return np.array([[c, -s], [s, c]], dtype=complex)
 
 
 def Rz(theta: float) -> Gate:
+    """Return the single-qubit Z-rotation gate for angle theta."""
     return np.array(
-        [[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]], dtype=complex
+        [
+            [np.exp(-1j * theta / 2), 0],
+            [0, np.exp(1j * theta / 2)],
+        ],
+        dtype=complex,
     )
 
 
 def expand_gate(U: Gate, n_qubits: int, target: int) -> Gate:
-    """Embed a 2x2 gate U acting on `target` qubit into a 2^n x 2^n matrix."""
+    """Embed a 2x2 gate acting on `target` into a 2^n x 2^n matrix."""
     ops: list[Gate] = [U if i == target else I for i in range(n_qubits)]
     result: Gate = ops[0]
     for op in ops[1:]:

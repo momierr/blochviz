@@ -1,3 +1,5 @@
+"""Bloch sphere animation and static rendering utilities."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -22,13 +24,16 @@ def _slerp(
     v0 = np.array(v0, dtype=float)
     v1 = np.array(v1, dtype=float)
     dot = np.clip(
-        np.dot(v0, v1) / (np.linalg.norm(v0) * np.linalg.norm(v1) + 1e-12), -1, 1
+        np.dot(v0, v1) / (np.linalg.norm(v0) * np.linalg.norm(v1) + 1e-12),
+        -1,
+        1,
     )
     omega = np.arccos(dot)
     if omega < 1e-10:
         return np.asarray(v0 + t * (v1 - v0), dtype=np.float64)
     return np.asarray(
-        (np.sin((1 - t) * omega) * v0 + np.sin(t * omega) * v1) / np.sin(omega),
+        (np.sin((1 - t) * omega) * v0 + np.sin(t * omega) * v1)
+        / np.sin(omega),
         dtype=np.float64,
     )
 
@@ -152,7 +157,7 @@ def plot_state(
 def save_animation(
     anim: FuncAnimation, path: str, fps: int = 25, dpi: int = 100
 ) -> None:
-    """Save an animation to .gif (Pillow) or .mp4 (ffmpeg) based on file extension."""
+    """Save an animation to .gif (Pillow) or .mp4 (ffmpeg)."""
     ext = path.rsplit(".", 1)[-1].lower()
     writer = "pillow" if ext == "gif" else "ffmpeg"
     anim.save(path, writer=writer, fps=fps, dpi=dpi)
