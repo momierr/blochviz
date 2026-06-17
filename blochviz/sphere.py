@@ -124,15 +124,14 @@ class BlochSphere:
                 alpha=0.75,
             )
 
-        # Pole labels
-        kw: dict[str, Any] = {
-            "color": "white",
-            "ha": "center",
-            "va": "center",
-            "fontsize": 11,
-        }
-        ax.text(0, 0, 1.30, r"$|0\rangle$", **kw)
-        ax.text(0, 0, -1.40, r"$|1\rangle$", **kw)
+        ax.text(
+            0, 0, 1.25, r"$|0\rangle$", color="white", ha="center", fontsize=9
+        )
+        ax.text(
+            0, 0, -1.35, r"$|1\rangle$", color="white", ha="center", fontsize=9
+        )
+        ax.text(1.35, 0, 0, "x", color="#ff6666", ha="center", fontsize=8)
+        ax.text(0, 1.35, 0, "y", color="#66ff66", ha="center", fontsize=8)
 
         # Equatorial cardinal labels
         ax.text(

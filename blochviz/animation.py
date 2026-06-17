@@ -53,7 +53,7 @@ def animate_circuit(
     Parameters
     ----------
     initial_state : QuantumState or array-like
-        Statevector, e.g. [1, 0] for |0⟩ or [1, 0, 0, 0] for |00⟩.
+        Statevector, e.g. [1, 0] for |0> or [1, 0, 0, 0] for |00>.
     gates : list of Gate or (Gate, target_qubit)
         Each element is a gate matrix or a (gate, target_qubit) tuple.
     labels : list of str, optional

@@ -86,20 +86,20 @@ def _insert_bit(k: int, pos: int, bit: int, n_qubits: int) -> int:
 
 
 def zero() -> QuantumState:
-    """Return the |0⟩ computational basis state."""
+    """Return the |0> computational basis state."""
     return QuantumState([1, 0])
 
 
 def one() -> QuantumState:
-    """Return the |1⟩ computational basis state."""
+    """Return the |1> computational basis state."""
     return QuantumState([0, 1])
 
 
 def plus() -> QuantumState:
-    """Return the |+⟩ = (|0⟩+|1⟩)/√2 state."""
+    """Return the |+> = (|0>+|1>)/sqrt(2) state."""
     return QuantumState([1, 1])
 
 
 def minus() -> QuantumState:
-    """Return the |−⟩ = (|0⟩−|1⟩)/√2 state."""
+    """Return the |-> = (|0>-|1>)/sqrt(2) state."""
     return QuantumState([1, -1])
